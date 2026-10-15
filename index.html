@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROMPTIA - 프롬프트에 대한 모든 것</title>
+  <style>
+    /* ----------------------------------------------------
+       1. Global Styles & Typography
+    ---------------------------------------------------- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Pretendard", sans-serif;
+    }
+
+    :root {
+      --bg-white: #ffffff;
+      --bg-gray: #f8fafc;
+      --border-gray: #e2e8f0;
+      --navy-primary: #1e3a8a;
+      --navy-dark: #172554;
+      --navy-light: #2563eb;
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --text-muted: #94a3b8;
+      --card-gray: #f1f5f9;
+    }
+
+    body {
+      background-color: var(--bg-white);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ----------------------------------------------------
+       2. Top Navigation Bar
+    ---------------------------------------------------- */
+    .top-header {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 64px;
+      background-color: var(--bg-white);
+      border-bottom: 1px solid var(--border-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .brand-logo h1 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--navy-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo span {
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .hamburger-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 8px;
+    }
+
+    .hamburger-btn span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background-color: var(--navy-primary);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    /* ----------------------------------------------------
+       3. Hamburger Drawer Menu
+    ---------------------------------------------------- */
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(100, 116, 139, 0.45);
+      z-index: 200;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .drawer-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .drawer-content {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100vh;
+      background-color: var(--bg-white);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+      z-index: 210;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    .drawer-content.active {
+      right: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-gray);
+    }
+
+    .drawer-header h3 {
+      font-size: 18px;
+      color: var(--navy-primary);
+      font-weight: 800;
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+
+    .drawer-menu-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .drawer-menu-item {
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+      background-color: var(--bg-gray);
+      transition: all 0.2s;
+    }
+
+    .drawer-menu-item:hover {
+      background-color: #e2e8f0;
+      color: var(--navy-primary);
+    }
+
+    .drawer-menu-item.home-btn {
+      margin-top: 15px;
+      background-color: #e2e8f0;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .drawer-menu-item.home-btn:hover {
+      background-color: #cbd5e1;
+      color: #334155;
+    }
+
+    /* ----------------------------------------------------
+       4. Page Container
+    ---------------------------------------------------- */
+    .container {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 20px;
+      flex: 1;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--navy-primary);
+      margin-bottom: 24px;
+    }
+
+    /* ----------------------------------------------------
+       5. Home Page Layout
+    ---------------------------------------------------- */
+    .home-hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .home-hero h2 {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--navy-primary);
+      margin-bottom: 8px;
+    }
+
+    .home-hero p {
+      font-size: 15px;
+      color: var(--text-sub);
+    }
+
+    .main-box-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .main-box {
+      border-radius: 14px;
+      padding: 26px 28px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid transparent;
+    }
+
+    .main-box.box-primary {
+      background-color: var(--navy-primary);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);
+    }
+
+    .main-box.box-primary:hover {
+      background-color: var(--navy-dark);
+      transform: translateY(-2px);
+    }
+
+    .main-box.box-primary .box-title { color: #ffffff; }
+    .main-box.box-primary .box-desc { color: #cbd5e1; }
+
+    .main-box.box-secondary {
+      background-color: var(--card-gray);
+      color: var(--text-main);
+      border-color: var(--border-gray);
+    }
+
+    .main-box.box-secondary:hover {
+      background-color: #e2e8f0;
+      transform: translateY(-2px);
+    }
+
+    .box-title {
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .box-desc {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    /* ----------------------------------------------------
+       6. Subpage 1: Promptia Lab
+    ---------------------------------------------------- */
+    .builder-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border-gray);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    select, textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border-gray);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-main);
+      background-color: var(--bg-white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, textarea:focus, input[type="text"]:focus {
+      border-color: var(--navy-primary);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .builder-btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-main-action {
+      flex: 2;
+      padding: 14px;
+      background-color: var(--navy-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-main-action:hover {
+      background-color: var(--navy-dark);
+    }
+
+    .btn-reset-action {
+      flex: 1;
+      padding: 14px;
+      background-color: #e2e8f0;
+      color: var(--text-sub);
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset-action:hover {
+      background-color: #cbd5e1;
+      color: var(--text-main);
+    }
+
+    .output-card {
+      background-color: var(--card-gray);
+      border: 1px solid var(--border-gray);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .output-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy-primary);
+      margin-bottom: 12px;
+    }
+
+    .result-box {
+      background: var(--bg-white);
+      border: 1px solid var(--border-gray);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      color: var(--text-main);
+      min-height: 120px;
+      margin-bottom: 16px;
+    }
+
+    .action-button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn-sub {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border-gray);
+      background-color: var(--bg-white);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-sub:hover {
+      background-color: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    .btn-sub.primary-sub {
+      background-color: var(--navy-primary);
+      color: white;
+      border-color: var(--navy-primary);
+    }
+
+    .btn-sub.primary-sub:hover {
+      background-color: var(--navy-dark);
+    }
+
+    .copy-guide-caption {
+      margin-top: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy-primary);
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ----------------------------------------------------
+       7. Subpage 2: Promptia Library
+    ---------------------------------------------------- */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-gray);
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--navy-primary);
+      border-bottom-color: var(--navy-primary);
+    }
+
+    .board-container {
+      display: none;
+    }
+
+    .board-container.active {
+      display: block;
+    }
+
+    .tag-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: var(--bg-gray);
+      border-radius: 8px;
+      border: 1px solid var(--border-gray);
+    }
+
+    .tag-chip {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      background-color: var(--bg-white);
+      color: var(--text-sub);
+      border: 1px solid var(--border-gray);
+      transition: all 0.2s;
+    }
+
+    .tag-chip:hover {
+      background-color: #e2e8f0;
+    }
+
+    .tag-chip.active {
+      background-color: var(--navy-primary);
+      color: #ffffff;
+      border-color: var(--navy-primary);
+    }
+
+    .sub-tab-nav {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      background-color: var(--card-gray);
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .sub-tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sub-tab-btn.active {
+      background-color: var(--bg-white);
+      color: var(--navy-primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* 실시간 클라우드 DB 연동 상태 배지 */
+    .db-sync-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--navy-primary);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .prompt-item-card {
+      background-color: var(--bg-white);
+      border: 1px solid var(--border-gray);
+      border-radius: 10px;
+      padding: 18px 20px;
+      transition: box-shadow 0.2s;
+    }
+
+    .prompt-item-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      background-color: #e0e7ff;
+      color: var(--navy-primary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card-body {
+      font-size: 13.5px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+      background-color: var(--bg-gray);
+      padding: 10px 12px;
+      border-radius: 6px;
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .memo-section {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-gray);
+    }
+
+    .memo-content-box {
+      background-color: #fefce8;
+      border: 1px solid #fef08a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #713f12;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+
+    .memo-input-wrap {
+      display: none;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .memo-input-wrap.active {
+      display: flex;
+    }
+
+    .memo-input-wrap input {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 12.5px;
+    }
+
+    .comments-section {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-gray);
+    }
+
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .comment-item {
+      background-color: var(--bg-gray);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .comment-author {
+      font-weight: 700;
+      color: var(--navy-primary);
+      font-size: 12px;
+    }
+
+    .comment-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .comment-body {
+      color: var(--text-main);
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .comment-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .comment-form input.comment-author-input {
+      width: 100px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .comment-form input.comment-body-input {
+      flex: 1;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .btn-like {
+      background: none;
+      border: 1px solid var(--border-gray);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-like.liked {
+      color: #e11d48;
+      border-color: #fecdd3;
+      background-color: #fff1f2;
+    }
+
+    .write-panel {
+      background-color: var(--card-gray);
+      border: 1px solid var(--border-gray);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .write-panel h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--navy-primary);
+    }
+
+    /* ----------------------------------------------------
+       8. Subpage 3: Prompt Classroom
+    ---------------------------------------------------- */
+    .edu-section {
+      margin-bottom: 36px;
+    }
+
+    .edu-section h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy-primary);
+      margin-bottom: 14px;
+    }
+
+    .principle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .principle-card {
+      background: var(--card-gray);
+      border: 1px solid var(--border-gray);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .principle-card .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      color: white;
+      background-color: var(--navy-primary);
+      padding: 3px 7px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .principle-card h5 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .principle-card p {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+
+    .compare-container {
+      background: var(--bg-white);
+      border: 1px solid var(--border-gray);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .compare-toggle-bar {
+      display: flex;
+      background: var(--card-gray);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--bg-white);
+      color: var(--navy-primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .compare-content-box {
+      padding: 16px;
+      border-radius: 8px;
+      background-color: var(--bg-gray);
+      border-left: 4px solid var(--border-gray);
+      min-height: 140px;
+    }
+
+    .compare-content-box.bad { border-left-color: #ef4444; }
+    .compare-content-box.good { border-left-color: #10b981; }
+
+    /* ----------------------------------------------------
+       9. Subpage 4: Developer Page
+    ---------------------------------------------------- */
+    .dev-page-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 60vh;
+      text-align: center;
+    }
+
+    .dev-card {
+      background-color: var(--card-gray);
+      border: 1px solid var(--border-gray);
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 480px;
+      width: 100%;
+      line-height: 1.8;
+    }
+
+    .dev-card h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--navy-primary);
+      margin-bottom: 16px;
+    }
+
+    .dev-text-p {
+      font-size: 15px;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+
+    .dev-email {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy-light);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background-color: var(--navy-dark);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 300;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 항시 고정 헤더 -->
+  <header class="top-header">
+    <div class="brand-logo" onclick="navigateTo('page-home')">
+      <h1>PROMPTIA</h1>
+      <span>프롬프트에 대한 모든 것</span>
+    </div>
+    <button class="hamburger-btn" aria-label="메뉴 열기" onclick="toggleDrawer(true)">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <!-- 우측 햄버거 메뉴 -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+  <nav class="drawer-content" id="drawerContent">
+    <div class="drawer-header">
+      <h3>PROMPTIA 메뉴</h3>
+      <button class="drawer-close" onclick="toggleDrawer(false)">&times;</button>
+    </div>
+    <ul class="drawer-menu-list">
+      <li class="drawer-menu-item" onclick="drawerNav('page-builder')">Promptia Lab (빌더)</li>
+      <li class="drawer-menu-item" onclick="drawerNav('page-library')">Promptia Library (게시판)</li>
+      <li class="drawer-menu-item" onclick="drawerNav('page-classroom')">Prompt Classroom (가이드)</li>
+      <li class="drawer-menu-item" onclick="drawerNav('page-developer')">개발자 페이지</li>
+      <li class="drawer-menu-item home-btn" onclick="drawerNav('page-home')">메인 페이지로 돌아가기</li>
+    </ul>
+  </nav>
+
+  <main class="container">
+
+    <!-- 0. 메인 홈 페이지 -->
+    <section id="page-home" class="page active">
+      <div class="home-hero">
+        <h2>PROMPTIA</h2>
+        <p>프롬프트에 대한 모든 것 : AI 작성과 학습을 가장 쉽게</p>
+      </div>
+
+      <div class="main-box-grid">
+        <div class="main-box box-primary" onclick="navigateTo('page-builder')">
+          <div class="box-title">
+            <span>Promptia Lab</span>
+            <span>&rarr;</span>
+          </div>
+          <div class="box-desc">맞춤형 프롬프트 제작 (오토 빌더)</div>
+        </div>
+
+        <div class="main-box box-secondary" onclick="navigateTo('page-library')">
+          <div class="box-title">
+            <span>Promptia Library</span>
+            <span>&rarr;</span>
+          </div>
+          <div class="box-desc">프롬프트 게시판 및 아카이브 저장소 (실시간 클라우드 DB 연동)</div>
+        </div>
+
+        <div class="main-box box-secondary" onclick="navigateTo('page-classroom')">
+          <div class="box-title">
+            <span>Prompt Classroom</span>
+            <span>&rarr;</span>
+          </div>
+          <div class="box-desc">프롬프트 학습 페이지 & 원리 가이드</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. 서브페이지 1: Promptia Lab -->
+    <section id="page-builder" class="page">
+      <h2 class="page-title">Promptia Lab</h2>
+      <div class="builder-card">
+        <div class="form-group">
+          <label>1. 목적 선택 (지시 - Instruction)</label>
+          <select id="builderGoal">
+            <option value="summary">핵심 요약 및 인사이트 도출</option>
+            <option value="code">클린 코드 작성 및 오류 디버깅</option>
+            <option value="blog">전문 블로그 및 아티클 글쓰기</option>
+            <option value="idea">창의적인 아이디어 기획 및 브레인스토밍</option>
+            <option value="translate">자연스러운 문맥 번역 및 다듬기</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>2. 페르소나 (문맥 - Context)</label>
+          <select id="builderPersona">
+            <option value="10년 차 IT 전문가 및 테크 리드">10년 차 전문가 관점</option>
+            <option value="초등학생의 눈높이에 맞춘 다정한 교사">초등학생 눈높이 교사</option>
+            <option value="엄격하고 꼼꼼한 수석 편집장">깐깐한 수석 편집장</option>
+            <option value="실용성과 효율성을 극대화하는 비즈니스 컨설턴트">비즈니스 컨설턴트</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>3. 핵심 키워드 및 요구사항 (입력 데이터 - Input Data)</label>
+          <textarea id="builderKeyword" placeholder="대충 적은 메모나 전달하고 싶은 핵심 단어를 자유롭게 입력하세요."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>4. 출력 형식 (형식 - Output Format)</label>
+          <select id="builderFormat">
+            <option value="핵심 3줄 요약 형태">3줄 요약</option>
+            <option value="비교 분석 마크다운(Markdown) 표 형태">마크다운 표</option>
+            <option value="친절하고 쉬운 구어체 설명형">친절한 대화체</option>
+            <option value="단계별 번호가 매겨진 절차형 리스트">단계별 번호 리스트</option>
+          </select>
+        </div>
+
+        <div class="builder-btn-row">
+          <button class="btn-main-action" onclick="generatePrompt()">프롬프트 생성하기</button>
+          <button class="btn-reset-action" onclick="resetBuilderForm()">↺ 다시 작성하기</button>
+        </div>
+      </div>
+
+      <div class="output-card" id="outputArea">
+        <h4>생성된 맞춤형 프롬프트</h4>
+        <div class="result-box" id="resultPromptText">위 항목을 선택하고 [프롬프트 생성하기] 버튼을 눌러주세요.</div>
+        
+        <div class="action-button-group">
+          <button class="btn-sub primary-sub" onclick="copyCurrentPrompt()">📋 원클릭 복사</button>
+          <button class="btn-sub" onclick="saveToMyArchiveFromBuilder()">💾 내 아카이브에 등록</button>
+          <button class="btn-sub" onclick="launchAI('chatgpt')">ChatGPT로 열기</button>
+          <button class="btn-sub" onclick="launchAI('claude')">Claude로 열기</button>
+          <button class="btn-sub" onclick="launchAI('gemini')">Gemini로 열기</button>
+        </div>
+
+        <div class="copy-guide-caption">
+          💡 원클릭 복사 버튼을 통해 프롬프트를 복사한 후, AI에 붙여넣기해주세요.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 서브페이지 2: Promptia Library -->
+    <section id="page-library" class="page">
+      <h2 class="page-title">Promptia Library</h2>
+      
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchBoard('board-default', this)">참고 추천 예시</button>
+        <button class="tab-btn" onclick="switchBoard('board-archive', this)">내 아카이브</button>
+        <button class="tab-btn" onclick="switchBoard('board-community', this)">공유 게시판</button>
+      </div>
+
+      <!-- 게시판 1: 추천 예시 -->
+      <div id="board-default" class="board-container active">
+        <div class="card-list" id="defaultList"></div>
+      </div>
+
+      <!-- 게시판 2: 내 아카이브 (개인 브라우저 보관) -->
+      <div id="board-archive" class="board-container">
+        <div class="tag-filter-bar" id="tagFilterBar"></div>
+
+        <div class="write-panel">
+          <h4>새 프롬프트 수동 보관 (개인)</h4>
+          <input type="text" id="myTitle" placeholder="프롬프트 제목" style="margin-bottom:8px;">
+          <input type="text" id="myTag" placeholder="태그 (예: 과제, 리포트, 코딩)" style="margin-bottom:8px;">
+          <textarea id="myBody" placeholder="보관할 프롬프트 전문" style="margin-bottom:12px;"></textarea>
+          <button class="btn-sub primary-sub" style="width:100%;" onclick="saveUserCustomPrompt()">내 아카이브에 저장</button>
+        </div>
+        <div class="card-list" id="myArchiveList"></div>
+      </div>
+
+      <!-- 게시판 3: 공유 게시판 (중앙 클라우드 DB 연동으로 모든 유저 공유) -->
+      <div id="board-community" class="board-container">
+        <div class="sub-tab-nav">
+          <button class="sub-tab-btn active" onclick="switchSubCommunity('brag', this)">✨ 나만의 프롬프트 자랑하기</button>
+          <button class="sub-tab-btn" onclick="switchSubCommunity('qna', this)">❓ 프롬프트 질문하기</button>
+          <button class="sub-tab-btn" onclick="switchSubCommunity('free', this)">💬 자유 토크</button>
+        </div>
+
+        <!-- 실시간 클라우드 DB 동기화 상태 표시 -->
+        <div class="db-sync-indicator">
+          <span><span class="sync-dot"></span>클라우드 데이터베이스(Database)와 실시간 연동 중</span>
+          <button class="btn-sub" style="padding:4px 8px; font-size:11px;" onclick="syncFromCloudDB(true)">🔄 새로고침</button>
+        </div>
+
+        <div class="write-panel">
+          <h4 id="communityWriteTitle">게시글 작성하기</h4>
+          <input type="text" id="comTitle" placeholder="제목을 입력하세요" style="margin-bottom:8px;">
+          <input type="text" id="comAuthor" placeholder="작성자 닉네임" style="margin-bottom:8px;">
+          <textarea id="comBody" placeholder="다른 사람들에게 공유할 프롬프트 또는 질문 내용을 입력하세요" style="margin-bottom:12px;"></textarea>
+          <button class="btn-sub primary-sub" style="width:100%;" id="btnPostCommunity" onclick="postToCommunity()">게시글 등록하기 (서버에 영구 저장)</button>
+        </div>
+
+        <div class="card-list" id="communityList"></div>
+      </div>
+    </section>
+
+    <!-- 3. 서브페이지 3: Prompt Classroom -->
+    <section id="page-classroom" class="page">
+      <h2 class="page-title">Prompt Classroom</h2>
+
+      <div class="edu-section">
+        <h3>1. 프롬프트 4대 핵심 구성 원칙</h3>
+        <div class="principle-grid">
+          <div class="principle-card">
+            <span class="badge">1. 지시 (Instruction)</span>
+            <h5>구체적 행동 규정</h5>
+            <p>AI가 수행해야 할 본질적인 작업(요약, 분류, 작성, 번역)을 명확하게 명령합니다.</p>
+          </div>
+          <div class="principle-card">
+            <span class="badge">2. 문맥 (Context)</span>
+            <h5>페르소나와 환경</h5>
+            <p>AI에게 특정 역할(전문가, 교사 등)을 부여하여 일관된 톤과 전문성을 유도합니다.</p>
+          </div>
+          <div class="principle-card">
+            <span class="badge">3. 데이터 (Input Data)</span>
+            <h5>처리할 원본 재료</h5>
+            <p>분석할 본문, 데이터, 키워드 등을 기호(따옴표, 마크다운 등)로 명확히 분리합니다.</p>
+          </div>
+          <div class="principle-card">
+            <span class="badge">4. 형식 (Output Format)</span>
+            <h5>출력 구조 명시</h5>
+            <p>표, 글머리 기호, 글자 수 제한 등 원하는 답변 레이아웃을 지정합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="edu-section">
+        <h3>2. Before & After 인터랙티브 비교</h3>
+        <div class="compare-container">
+          <div class="compare-toggle-bar">
+            <button class="toggle-btn active" id="btnToggleBad" onclick="toggleCompare('bad')">❌ 대충 쓴 프롬프트 (Bad)</button>
+            <button class="toggle-btn" id="btnToggleGood" onclick="toggleCompare('good')">✨ 완벽한 프롬프트 (Good)</button>
+          </div>
+          <div class="compare-content-box bad" id="compareDisplay"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 서브페이지 4: 개발자 페이지 -->
+    <section id="page-developer" class="page">
+      <div class="dev-page-wrapper">
+        <div class="dev-card">
+          <h3>개발</h3>
+          <p class="dev-text-p">
+            경인교육대학교<br>
+            컴퓨터교육 최연서
+          </p>
+          <p class="dev-text-p" style="color: var(--text-sub); font-size: 14px;">
+            AI 능력이 필수가 된 시대.<br>
+            초보자, 나이불문 편리하게 프롬프트를 작성하도록 도와주는<br>
+            <strong>내 컴퓨터 속 작은 AI 컬리지</strong>
+          </p>
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-gray);">
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">웹페이지 오류 제보하기</div>
+            <a href="mailto:yschoi@t.ginue.ac.kr" class="dev-email">yschoi@t.ginue.ac.kr</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast">알림</div>
+
+  <script>
+    /* ====================================================
+       1. Navigation Logic
+    ==================================================== */
+    function toggleDrawer(isOpen) {
+      const overlay = document.getElementById('drawerOverlay');
+      const drawer = document.getElementById('drawerContent');
+      if (isOpen) {
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+      } else {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+      }
+    }
+
+    function navigateTo(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(pageId);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function drawerNav(pageId) {
+      toggleDrawer(false);
+      navigateTo(pageId);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2200);
+    }
+
+    /* ====================================================
+       2. Promptia Lab Logic
+    ==================================================== */
+    let currentAssembledPrompt = "";
+
+    function generatePrompt() {
+      const goalSelect = document.getElementById('builderGoal');
+      const goalText = goalSelect.options[goalSelect.selectedIndex].text;
+      const persona = document.getElementById('builderPersona').value;
+      const keywords = document.getElementById('builderKeyword').value.trim();
+      const format = document.getElementById('builderFormat').value;
+
+      if (!keywords) {
+        showToast("핵심 키워드 및 요구사항을 입력해 주세요.");
+        document.getElementById('builderKeyword').focus();
+        return;
+      }
+
+      currentAssembledPrompt = 
+`[역할 및 문맥 (Context)]
+당신은 '${persona}'입니다. 전문성과 책임감을 가지고 질문에 답하세요.
+
+[수행 지시 (Instruction)]
+아래 [제공 데이터 및 키워드]를 면밀히 분석하여 '${goalText}' 작업을 완벽하게 수행해 주세요.
+
+[제공 데이터 및 키워드 (Input Data)]
+---
+${keywords}
+---
+
+[출력 형식 및 가이드 (Output Format)]
+1. 반드시 '${format}'로 작성해 주세요.
+2. 불필요한 서두나 미사여구는 줄이고 핵심 본론을 명료하게 전달하세요.
+3. 한국어 어법에 맞추어 깔끔하게 서술하세요.`;
+
+      document.getElementById('resultPromptText').textContent = currentAssembledPrompt;
+      showToast("맞춤형 프롬프트가 조립되었습니다!");
+    }
+
+    function resetBuilderForm() {
+      document.getElementById('builderGoal').selectedIndex = 0;
+      document.getElementById('builderPersona').selectedIndex = 0;
+      document.getElementById('builderKeyword').value = "";
+      document.getElementById('builderFormat').selectedIndex = 0;
+      currentAssembledPrompt = "";
+      document.getElementById('resultPromptText').textContent = "위 항목을 선택하고 [프롬프트 생성하기] 버튼을 눌러주세요.";
+      showToast("입력 조건이 초기화되었습니다.");
+      document.getElementById('builderKeyword').focus();
+    }
+
+    function copyCurrentPrompt() {
+      if (!currentAssembledPrompt) {
+        showToast("먼저 프롬프트를 생성해 주세요.");
+        return;
+      }
+      navigator.clipboard.writeText(currentAssembledPrompt).then(() => {
+        showToast("클립보드에 복사되었습니다! AI에 붙여넣기하세요.");
+      });
+    }
+
+    function saveToMyArchiveFromBuilder() {
+      if (!currentAssembledPrompt) {
+        showToast("저장할 생성 프롬프트가 없습니다.");
+        return;
+      }
+      const newEntry = {
+        id: Date.now(),
+        title: "오토 빌더 생성 프롬프트",
+        tag: "오토빌더",
+        body: currentAssembledPrompt,
+        memo: "",
+        date: new Date().toLocaleDateString()
+      };
+      const archive = getLocal('my_archive_v2');
+      archive.unshift(newEntry);
+      setLocal('my_archive_v2', archive);
+      renderMyArchive();
+      showToast("내 아카이브에 등록되었습니다!");
+    }
+
+    function launchAI(platform) {
+      if (!currentAssembledPrompt) {
+        showToast("먼저 프롬프트를 생성해 주세요.");
+        return;
+      }
+      navigator.clipboard.writeText(currentAssembledPrompt).then(() => {
+        let url = "";
+        if (platform === 'chatgpt') url = "https://chatgpt.com";
+        else if (platform === 'claude') url = "https://claude.ai";
+        else if (platform === 'gemini') url = "https://gemini.google.com";
+
+        showToast("복사 완료! " + platform.toUpperCase() + "에 붙여넣기하세요.");
+        window.open(url, '_blank');
+      });
+    }
+
+    /* ====================================================
+       3. Cloud Database Engine (실시간 글로벌 공유 허브)
+    ==================================================== */
+    // PROMPTIA 공용 글로벌 클라우드 저장소 엔드포인트
+    const CLOUD_DB_URL = "https://api.npoint.io/081e642cf3be1aa67e71";
+
+    let communityPosts = [];
+    let isDBSyncing = false;
+
+    // 로컬 스토리지 헬퍼 (개인 아카이브용)
+    function getLocal(key) {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function setLocal(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    // 기본 시드 데이터
+    const defaultCommunitySeeds = [
+      {
+        id: 101,
+        category: 'brag',
+        title: "대학생 발표 대본 작성용 만능 프롬프트",
+        author: "발표왕컴교",
+        body: "[문맥] 청중은 대학교 학부생들임.\n[지시] 5분 분량의 대본을 유머러스한 오프닝, 핵심 3가지, 명쾌한 결론으로 구조화해 줘.",
+        likes: 15,
+        comments: []
+      },
+      {
+        id: 201,
+        category: 'qna',
+        title: "초등학생 대상 과학 설명 프롬프트 짤 때 페르소나 질문",
+        author: "예비교사",
+        body: "초등학교 4학년 수준에 맞추려면 페르소나를 어떻게 줘야 전문 용어 없이 쉽게 풀어서 말해줄까요? 좋은 팁 있으신가요?",
+        likes: 8,
+        comments: [
+          { author: "컴교선배", text: "'어려운 과학 용어는 일상 속 간식이나 장난감에 빗대어 비유해 줘'라는 조건을 넣으면 아주 효과적입니다!", time: "10:14" }
+        ]
+      },
+      {
+        id: 301,
+        category: 'free',
+        title: "다들 ChatGPT랑 Claude 중 어떤 걸 더 많이 쓰시나요?",
+        author: "컴교새내기",
+        body: "과제 리포트 작성할 때는 클로드가 자연스러운 것 같고 코딩할 때는 챗지피티가 편한 느낌인데 다들 어떻게 활용하시나요?",
+        likes: 11,
+        comments: [
+          { author: "코딩러", text: "저도 동일해요! 보고서 서술은 Claude, 코드 짤 땐 ChatGPT가 편합니다.", time: "10:20" }
+        ]
+      }
+    ];
+
+    // 클라우드 Database에서 최신 게시글 및 댓글 가져오기 (GET)
+    async function syncFromCloudDB(showNotice = false) {
+      try {
+        const response = await fetch(CLOUD_DB_URL, { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            communityPosts = data;
+          } else {
+            communityPosts = defaultCommunitySeeds;
+          }
+        } else {
+          communityPosts = getLocal('com_archive_fallback') || defaultCommunitySeeds;
+        }
+      } catch (err) {
+        console.warn("Cloud DB fetch fallback:", err);
+        communityPosts = getLocal('com_archive_fallback');
+        if (communityPosts.length === 0) communityPosts = defaultCommunitySeeds;
+      }
+
+      setLocal('com_archive_fallback', communityPosts);
+      renderCommunity();
+      if (showNotice) showToast("클라우드 DB의 최신 글 목록을 불러왔습니다.");
+    }
+
+    // 클라우드 Database에 데이터 업로드 및 영구 반영 (POST)
+    async function updateCloudDB() {
+      if (isDBSyncing) return;
+      isDBSyncing = true;
+      setLocal('com_archive_fallback', communityPosts);
+
+      try {
+        await fetch(CLOUD_DB_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(communityPosts)
+        });
+      } catch (err) {
+        console.error("Cloud DB save error:", err);
+      } finally {
+        isDBSyncing = false;
+      }
+    }
+
+    /* ====================================================
+       4. Subpage 2: Library & Archive Rendering
+    ==================================================== */
+    let currentSelectedTag = 'ALL';
+    let currentSubCategory = 'brag';
+
+    const defaultPrompts = [
+      {
+        tag: "보고서",
+        title: "복잡한 학술 논문 및 긴 보고서 3줄 핵심 요약",
+        body: "[역할] 해당 분야 박사급 연구원\n[지시] 긴 문서를 비전공자도 단번에 이해할 수 있는 핵심 골자 3줄과 한계점 1가지로 구조화 요약"
+      },
+      {
+        tag: "코딩",
+        title: "웹 표준 클린 코드 리팩토링 및 성능 최적화",
+        body: "[역할] 10년 차 프론트엔드 아키텍트\n[지시] 제공된 코드의 가독성을 높이고, 변수 스코프 문제와 메모리 누수 가능성을 진단하여 수정안 제시"
+      },
+      {
+        tag: "마케팅",
+        title: "SNS 릴스/쇼츠 3초 후킹 스크립트 도출",
+        body: "[역할] 트렌드 전문 크리에이티브 디렉터\n[지시] 다음 제품의 핵심 셀링 포인트를 20대 타깃에 맞추어 초반 3초 시선 강탈 대사 3개 작성"
+      }
+    ];
+
+    function initLibrary() {
+      // 1. 추천 예시 렌더
+      const defContainer = document.getElementById('defaultList');
+      defContainer.innerHTML = defaultPrompts.map(p => `
+        <div class="prompt-item-card">
+          <div class="card-top">
+            <span class="card-tag">${p.tag}</span>
+          </div>
+          <div class="card-title">${p.title}</div>
+          <div class="card-body">${p.body}</div>
+          <div class="card-footer">
+            <button class="btn-sub" onclick="copyText(\`${escapeQuote(p.body)}\`)">📋 템플릿 복사</button>
+          </div>
+        </div>
+      `).join('');
+
+      // 2. 내 개인 아카이브 시드 확인
+      if (!localStorage.getItem('my_archive_v2')) {
+        setLocal('my_archive_v2', [
+          {
+            id: 1,
+            title: "수학 과외 개념 설명용 템플릿",
+            tag: "과외",
+            body: "[문맥] 중학교 1학년 학생 눈높이\n[지시] 정수와 유리수의 덧셈 뺄셈 부호 규칙을 수직선 개념으로 쉽게 설명해 줘.",
+            memo: "💡 학생 지도 시 음수 뺄셈 개념을 한 번에 이해시킴.",
+            date: new Date().toLocaleDateString()
+          }
+        ]);
+      }
+
+      renderMyArchive();
+      // 3. 클라우드 DB에서 실시간 글 동기화
+      syncFromCloudDB();
+    }
+
+    function escapeQuote(str) {
+      return (str || '').replace(/`/g, "\\`").replace(/\${/g, "\\${");
+    }
+
+    function switchBoard(boardId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.board-container').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(boardId).classList.add('active');
+    }
+
+    function switchSubCommunity(cat, btn) {
+      currentSubCategory = cat;
+      document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const titleMap = {
+        'brag': '✨ 나만의 프롬프트 자랑하기 등록',
+        'qna': '❓ 프롬프트 질문 작성하기 (댓글 소통 가능)',
+        'free': '💬 자유 토크 글 작성하기 (댓글 소통 가능)'
+      };
+      document.getElementById('communityWriteTitle').textContent = titleMap[cat];
+      renderCommunity();
+    }
+
+    /* ---------------- 내 아카이브 로직 ---------------- */
+    function renderMyArchive() {
+      const allItems = getLocal('my_archive_v2');
+
+      const tagSet = new Set();
+      allItems.forEach(item => {
+        if (item.tag) tagSet.add(item.tag.trim());
+      });
+
+      const tagBar = document.getElementById('tagFilterBar');
+      let tagHtml = `<span class="tag-chip ${currentSelectedTag === 'ALL' ? 'active' : ''}" onclick="filterMyArchiveByTag('ALL')">전체 보기 (${allItems.length})</span>`;
+      tagSet.forEach(tag => {
+        const count = allItems.filter(item => item.tag === tag).length;
+        tagHtml += `<span class="tag-chip ${currentSelectedTag === tag ? 'active' : ''}" onclick="filterMyArchiveByTag('${tag}')">#${tag} (${count})</span>`;
+      });
+      tagBar.innerHTML = tagHtml;
+
+      const filtered = currentSelectedTag === 'ALL' 
+        ? allItems 
+        : allItems.filter(item => item.tag === currentSelectedTag);
+
+      const container = document.getElementById('myArchiveList');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:14px;">선택한 태그에 해당하는 프롬프트가 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="prompt-item-card">
+          <div class="card-top">
+            <span class="card-tag">#${item.tag || '미분류'}</span>
+            <button class="btn-sub" style="padding:4px 8px; font-size:11px; color:#ef4444;" onclick="deleteMyPrompt(${item.id})">삭제</button>
+          </div>
+          <div class="card-title">${item.title}</div>
+          <div class="card-body">${item.body}</div>
+          
+          <div class="card-footer">
+            <button class="btn-sub" onclick="copyText(\`${escapeQuote(item.body)}\`)">📋 복사하기</button>
+            <button class="btn-sub" onclick="toggleMemoInput(${item.id})">📝 메모 작성 / 수정</button>
+            <span style="font-size:12px; color:#94a3b8;">${item.date || ''}</span>
+          </div>
+
+          <div class="memo-section">
+            ${item.memo ? `<div class="memo-content-box">${item.memo}</div>` : ''}
+            <div class="memo-input-wrap" id="memoWrap_${item.id}">
+              <input type="text" id="memoInput_${item.id}" placeholder="실행 결과나 피드백 메모를 남겨보세요..." value="${escapeQuote(item.memo || '')}">
+              <button class="btn-sub primary-sub" onclick="saveMemo(${item.id})">메모 저장</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterMyArchiveByTag(tag) {
+      currentSelectedTag = tag;
+      renderMyArchive();
+    }
+
+    function toggleMemoInput(id) {
+      const wrap = document.getElementById(`memoWrap_${id}`);
+      wrap.classList.toggle('active');
+      if (wrap.classList.contains('active')) {
+        document.getElementById(`memoInput_${id}`).focus();
+      }
+    }
+
+    function saveMemo(id) {
+      const input = document.getElementById(`memoInput_${id}`);
+      const newMemo = input.value.trim();
+
+      let list = getLocal('my_archive_v2');
+      const target = list.find(item => item.id === id);
+      if (target) {
+        target.memo = newMemo;
+        setLocal('my_archive_v2', list);
+        renderMyArchive();
+        showToast("추가 메모가 저장되었습니다.");
+      }
+    }
+
+    function saveUserCustomPrompt() {
+      const title = document.getElementById('myTitle').value.trim();
+      const tag = document.getElementById('myTag').value.trim();
+      const body = document.getElementById('myBody').value.trim();
+
+      if (!title || !body) {
+        showToast("제목과 본문을 입력해 주세요.");
+        return;
+      }
+
+      const list = getLocal('my_archive_v2');
+      list.unshift({
+        id: Date.now(),
+        title: title,
+        tag: tag || "보관",
+        body: body,
+        memo: "",
+        date: new Date().toLocaleDateString()
+      });
+      setLocal('my_archive_v2', list);
+
+      document.getElementById('myTitle').value = "";
+      document.getElementById('myTag').value = "";
+      document.getElementById('myBody').value = "";
+      renderMyArchive();
+      showToast("내 아카이브에 저장되었습니다.");
+    }
+
+    function deleteMyPrompt(id) {
+      let list = getLocal('my_archive_v2');
+      list = list.filter(item => item.id !== id);
+      setLocal('my_archive_v2', list);
+      renderMyArchive();
+      showToast("삭제되었습니다.");
+    }
+
+    /* ---------------- 공유 게시판 로직 (클라우드 DB 통신) ---------------- */
+    function renderCommunity() {
+      const filtered = communityPosts.filter(p => p.category === currentSubCategory);
+      const container = document.getElementById('communityList');
+
+      const catBadge = {
+        'brag': '자랑',
+        'qna': '질문',
+        'free': '자유'
+      };
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:14px;">현재 게시판에 등록된 글이 없습니다. 다른 기기의 유저들도 볼 수 있도록 첫 글을 올려보세요!</div>`;
+        return;
+      }
+
+      const isCommentable = (currentSubCategory === 'qna' || currentSubCategory === 'free');
+
+      container.innerHTML = filtered.map(item => {
+        const comments = item.comments || [];
+        return `
+          <div class="prompt-item-card">
+            <div class="card-top">
+              <span class="card-tag">${catBadge[item.category]} | 작성자: ${item.author}</span>
+            </div>
+            <div class="card-title">${item.title}</div>
+            <div class="card-body">${item.body}</div>
+            <div class="card-footer">
+              <button class="btn-sub" onclick="copyText(\`${escapeQuote(item.body)}\`)">📋 열람 복사</button>
+              <button class="btn-like" onclick="likePost(${item.id}, this)">
+                ❤️ 좋아요 <span>${item.likes || 0}</span>
+              </button>
+            </div>
+
+            ${isCommentable ? `
+              <div class="comments-section">
+                <div style="font-size:13px; font-weight:700; color:var(--navy-primary); margin-bottom:8px;">
+                  💬 댓글 (${comments.length})
+                </div>
+                
+                <div class="comment-list">
+                  ${comments.length === 0 ? `<div style="font-size:12px; color:var(--text-muted);">아직 댓글이 없습니다. 따뜻한 의견을 남겨보세요!</div>` : ''}
+                  ${comments.map(c => `
+                    <div class="comment-item">
+                      <div class="comment-header">
+                        <span class="comment-author">${c.author}</span>
+                        <span class="comment-time">${c.time}</span>
+                      </div>
+                      <div class="comment-body">${c.text}</div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="comment-form">
+                  <input type="text" class="comment-author-input" id="cAuthor_${item.id}" placeholder="닉네임">
+                  <input type="text" class="comment-body-input" id="cText_${item.id}" placeholder="댓글을 입력하세요...">
+                  <button class="btn-sub primary-sub" style="padding:6px 12px; font-size:12px;" onclick="addComment(${item.id})">등록</button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function postToCommunity() {
+      const titleInput = document.getElementById('comTitle');
+      const authorInput = document.getElementById('comAuthor');
+      const bodyInput = document.getElementById('comBody');
+      const btn = document.getElementById('btnPostCommunity');
+
+      const title = titleInput.value.trim();
+      const author = authorInput.value.trim();
+      const body = bodyInput.value.trim();
+
+      if (!title || !body) {
+        showToast("제목과 내용을 모두 입력해 주세요.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "클라우드 Database에 저장 중...";
+
+      const newPost = {
+        id: Date.now(),
+        category: currentSubCategory,
+        title: title,
+        author: author || "익명 크리에이터",
+        body: body,
+        likes: 0,
+        comments: []
+      };
+
+      communityPosts.unshift(newPost);
+      renderCommunity();
+
+      await updateCloudDB();
+
+      titleInput.value = "";
+      authorInput.value = "";
+      bodyInput.value = "";
+      btn.disabled = false;
+      btn.textContent = "게시글 등록하기 (서버에 영구 저장)";
+
+      showToast("클라우드 DB에 저장 완료! 다른 기기에서도 열람할 수 있습니다.");
+    }
+
+    async function addComment(postId) {
+      const authorInput = document.getElementById(`cAuthor_${postId}`);
+      const textInput = document.getElementById(`cText_${postId}`);
+
+      const author = authorInput.value.trim() || "익명";
+      const text = textInput.value.trim();
+
+      if (!text) {
+        showToast("댓글 내용을 입력해 주세요.");
+        return;
+      }
+
+      const target = communityPosts.find(item => item.id === postId);
+      if (target) {
+        if (!target.comments) target.comments = [];
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        target.comments.push({
+          author: author,
+          text: text,
+          time: timeStr
+        });
+
+        renderCommunity();
+        await updateCloudDB();
+        showToast("댓글이 클라우드 서버에 등록되었습니다!");
+      }
+    }
+
+    async function likePost(id, btn) {
+      const target = communityPosts.find(item => item.id === id);
+      if (target) {
+        target.likes = (target.likes || 0) + 1;
+        btn.querySelector('span').textContent = target.likes;
+        btn.classList.add('liked');
+        await updateCloudDB();
+        showToast("좋아요가 서버에 반영되었습니다!");
+      }
+    }
+
+    function copyText(str) {
+      navigator.clipboard.writeText(str).then(() => {
+        showToast("클립보드에 복사되었습니다! AI에 붙여넣기하세요.");
+      });
+    }
+
+    /* ====================================================
+       5. Prompt Classroom Logic
+    ==================================================== */
+    const compareData = {
+      bad: {
+        title: "❌ 대충 쓴 프롬프트 (오류 유발 및 모호한 답변)",
+        prompt: `"AI 과제 보고서 하나만 멋지게 써줘."`,
+        analysis: "• <strong>문제점:</strong> 지시가 모호하고 문맥(대상 청중/작성자 수준)과 입력 데이터가 전무하며, 출력 형식(분량, 구조)이 전혀 규정되지 않았습니다.<br>• <strong>결과:</strong> 두루뭉술하고 인터넷 블로그를 긁어온 듯한 뻔한 답변만 나옵니다."
+      },
+      good: {
+        title: "✨ 4대 요소가 결합된 완벽한 프롬프트",
+        prompt: `"[문맥] 너는 초등 컴퓨터 교육을 전공하는 대학생이야.\n[지시] 비전공 학부생들이 AI 프롬프트 엔지니어링의 기본 개념을 이해할 수 있는 1장 분량의 과제 보고서를 작성해 줘.\n[데이터] '지시, 문맥, 입력 데이터, 출력 형식'의 4대 핵심 구성 원리를 본문에 반드시 포함할 것.\n[출력 형식] 1. 서론-본론-결론 구조 / 2. 핵심 원리는 마크다운 표로 깔끔하게 정리해 줘."`,
+        analysis: "• <strong>강점:</strong> 명확한 페르소나(문맥)와 구체적 과업(지시), 필수 개념(입력 데이터), 원하는 레이아웃(출력 형식)이 빈틈없이 규정되어 AI가 한 번에 양질의 답변을 도출합니다."
+      }
+    };
+
+    function toggleCompare(type) {
+      const btnBad = document.getElementById('btnToggleBad');
+      const btnGood = document.getElementById('btnToggleGood');
+      const display = document.getElementById('compareDisplay');
+
+      if (type === 'bad') {
+        btnBad.classList.add('active');
+        btnGood.classList.remove('active');
+        display.className = "compare-content-box bad";
+      } else {
+        btnGood.classList.add('active');
+        btnBad.classList.remove('active');
+        display.className = "compare-content-box good";
+      }
+
+      const item = compareData[type];
+      display.innerHTML = `
+        <h4 style="font-size:15px; margin-bottom:8px; font-weight:800;">${item.title}</h4>
+        <div style="background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:6px; font-family:monospace; font-size:13px; line-height:1.5; margin-bottom:10px; white-space:pre-wrap;">${item.prompt}</div>
+        <div style="font-size:13px; color:#475569; line-height:1.5;">${item.analysis}</div>
+      `;
+    }
+
+    // 15초마다 자동으로 클라우드 Database 동기화 (타 기기 작성글 실시간 수신)
+    setInterval(() => {
+      syncFromCloudDB();
+    }, 15000);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initLibrary();
+      toggleCompare('bad');
+    });
+  </script>
+</body>
+</html>
